@@ -36,12 +36,18 @@ KV = '''
     CheckboxLeftWidget:
         id: checkbox
 
+    IconRightWidget:
+        icon: 'trash-can-outline'
+        theme_text_color: "Custom"
+        text_color: 1, 0, 0, 1
+        on_release: root.delete_task()
+
 <ContentNavigationDrawer>:
 
     MDList:
 
         OneLineListItem:
-            text: "Login"
+            text: "Sair"
             on_press:
                 root.nav_drawer.set_state("close")
                 root.screen_manager.current = "scr 1"
@@ -49,30 +55,38 @@ KV = '''
         OneLineListItem:
             text: "Tarefas"
             on_press:
+                app.listar_tarefas()
                 root.nav_drawer.set_state("close")
                 root.screen_manager.current = "scr 2"
+
 
         OneLineListItem:
             text: "Lista de tarefas"
             on_press:
+
                 root.nav_drawer.set_state("close")
                 root.screen_manager.current = "scr 3"
 
+
+
 MDScreen:
 
-    MDTopAppBar:
-        pos_hint: {"top": 1}
-        elevation: 4
-        title: "Listview"
-        left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
+
 
     MDNavigationLayout:
 
         MDScreenManager:
             id: screen_manager
-
+#  --------------------------------------------LOGIN DO USUÁRIO -----------------------------------------------------------------------------
             MDScreen:
                 name: "scr 1"
+                
+                MDTopAppBar:
+                    title: "Listview"
+                    elevation: 0
+                    pos_hint: {"top": 1}
+                    
+                    
 
                 MDCard:
                     size_hint: None, None
@@ -116,8 +130,11 @@ MDScreen:
                             line_color: 0, 0, 0, 0
                             pos_hint: {"center_x": .5, "center_y": .5}
                             padding: '10dp'
-                                                        
+                            on_release: app.nao_tem_conta_cadastre()
                             
+
+                                                        
+                            # ---------------------------------------------------------LISTANDO TAREFAS ---------------------------------------------------
             MDScreen:
                 name: "scr 2"
 
@@ -128,21 +145,75 @@ MDScreen:
                         title: "Tarefas"
                         elevation: 10
                         pos_hint: {"top": 1}
+                        left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
+                        
 
                     ScrollView:
                         MDList:
                             id: tarefas_list
+                    
+                           # -------------------------------------------CADASTRANDO USUÁRIOOOOOO -----------------------------
+            MDScreen:
+                name: "scr 4"
 
-                MDRaisedButton:
-                    text: "Listar Tarefas"
-                    on_release: app.listar_tarefas()
-                    pos_hint: {"center_x": .5, "center_y": .1}
+                MDCard:
+                    size_hint: None, None
+                    size: "300dp", "350dp"
+                    pos_hint: {"center_x": 0.5, "center_y": 0.5}
 
+                    BoxLayout:
+                        orientation: 'vertical'
+                        padding: '10dp'
 
-                        
+                        MDLabel:
+                            text: "Cadastre-se"
+                            halign: "center"
+                            pos_hint: {"center_x": .5, "center_y": .5}
+                            size_hint_x: .5
+                            
 
+                        MDTextField:
+                            id: email_user
+                            hint_text: "e-mail"
+                            multiline: True
+
+                        MDTextField:
+                            id: tel_user
+                            hint_text: "Telefone"
+                            multiline: True
+
+                        MDTextField:
+                            id: cpf_user
+                            hint_text: "CPF"
+                            multiline: True
+
+                        MDTextField:
+                            id: password_user
+                            hint_text: "Digite a senha"
+                            password: True
+                            multiline: True
+
+                        MDRaisedButton:
+                            text: "Criar conta"
+                            on_release: app.cadastrar_user()
+                            pos_hint: {"center_x": .5, "center_y": .8}
+                            size_hint_x: .5
+
+                MDTopAppBar:
+                    title: "Casdastrar"
+                    elevation: 0
+                    pos_hint: {"top": 1}
+                    left_action_items: [["exit-to-app", lambda x: app.exit_app()]]
+
+#  --------------------------------------------------------------CADASTRANDO TAREFAS -------------------------------------------------
             MDScreen:
                 name: "scr 3"
+                
+                MDTopAppBar:
+                    title: "Cadastrar Tarefas"
+                    elevation: 0
+                    pos_hint: {"top": 1}
+                    left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
 
                 MDLabel:
                     text: "Cadastrar Tarefas"
@@ -152,7 +223,7 @@ MDScreen:
 
                 MDTextField:
                     id: nome
-                    hint_text: "Nome da tarefa"
+                    hint_text: "Titulo"
                     helper_text_mode: "on_error"
                     pos_hint: {"center_x": .5, "center_y": .6}
                     size_hint_x: .5
@@ -177,7 +248,7 @@ MDScreen:
 
                 MDTextField:
                     id: data
-                    hint_text: "Data da tarefa"
+                    hint_text: "Data de conclusão"
                     helper_text_mode: "on_error"
                     pos_hint: {"center_x": .5, "center_y": .3}
                     size_hint_x: .5
@@ -186,7 +257,7 @@ MDScreen:
                     id: cadastro_tarefa
                     on_press: app.cadastrar(nome.text, descricao.text, status.text, data.text)
                     text: "Cadastrar"
-                    icon: "account-plus"
+                    icon: "content-save-check"
                     icon_color: "white"
                     text_color: "white"
                     line_color: "white"
@@ -211,6 +282,8 @@ MDScreen:
             ContentNavigationDrawer:
                 screen_manager: screen_manager
                 nav_drawer: nav_drawer
+
+
 '''
 
 
@@ -218,13 +291,27 @@ class ContentNavigationDrawer(MDScrollView):
     screen_manager = ObjectProperty()
     nav_drawer = ObjectProperty()
     
+
+
 class TarefaListItem(TwoLineAvatarIconListItem):
     checkbox = ObjectProperty()
+    tarefa_id = ObjectProperty()  # Adicione um atributo para armazenar o ID da tarefa
 
-    def __init__(self, text, secondary_text, checkbox_active=False, **kwargs):
+    def __init__(self, text, secondary_text, tarefa_id, checkbox_active=False, **kwargs):
         super(TarefaListItem, self).__init__(text=text, secondary_text=secondary_text, **kwargs)
         self.checkbox = CheckBox(active=checkbox_active)
+        self.tarefa_id = tarefa_id  # Atribua o ID da tarefa ao atributo
         self.add_widget(self.checkbox)
+
+    def delete_task(self):
+        app = MDApp.get_running_app()
+        try:
+            # Exclua a tarefa do banco de dados
+            app.delete_task(self.tarefa_id)
+            # Remova o item da lista
+            app.root.ids.tarefas_list.remove_widget(self)
+        except Exception as e:
+            print(f"Erro ao excluir tarefa: {str(e)}")
 
 
 class Example(MDApp):
@@ -240,6 +327,14 @@ class Example(MDApp):
             "status_tarefa":status_tarefa,
             "data_tarefa":data_tarefa
         })
+
+    def delete_task(self, tarefa_id):
+            try:
+                db.child("tarefas").child(tarefa_id).remove()
+                print(f"Tarefa com ID {tarefa_id} excluída com sucesso no banco de dados.")
+            except Exception as e:
+                print(f"Erro ao excluir tarefa no banco de dados: {str(e)}")
+
     
 
     def login(self):
@@ -253,22 +348,52 @@ class Example(MDApp):
         except Exception as e:
             print(f"Erro ao fazer login: {str(e)}")
             self.show_error_dialog()
+            
+    def cadastrar_user(self):
+        email = self.root.ids.email_user.text
+        senha = self.root.ids.password_user.text
+
+        autenticacao = firebase.auth()
+        try:
+            new_user = autenticacao.create_user_with_email_and_password(email, senha)
+            print("Usuário criado com sucesso!")
+
+            # ARMAZENA INFORMAÇÕES A MAIS CRIANDO UM JSON
+            user_data = {
+                "cpf": self.root.ids.cpf_user.text,
+                "telefone": self.root.ids.tel_user.text
+            }
+            db.child("usuarios").child(new_user['localId']).set(user_data)
+
+            self.root.ids.screen_manager.current = "scr 1"  
+        except Exception as e:
+            print(f"Erro ao criar usuário: {str(e)}")
+            self.show_error_dialog()
+            
+
+    def nao_tem_conta_cadastre(self):
+        self.root.ids.screen_manager.current = "scr 4"
+
+
 
     def listar_tarefas(self):
-        tarefas_list = self.root.ids.tarefas_list
-        tarefas_list.clear_widgets()
+            tarefas_list = self.root.ids.tarefas_list
+            tarefas_list.clear_widgets()
 
-        tarefas = db.child("tarefas").get()
-        if tarefas.each():
-            for tarefa in tarefas.each():
-                tarefa_nome = tarefa.val()['nome']
-                tarefa_descricao = tarefa.val()['descricao']
+            tarefas = db.child("tarefas").get()
+            if tarefas.each():
+                for tarefa in tarefas.each():
+                    tarefa_nome = tarefa.val()['nome']
+                    tarefa_descricao = tarefa.val()['descricao']
+                    tarefa_id = tarefa.key()  
 
-                tarefa_label = TarefaListItem(
-                    text=f"Nome: {tarefa_nome}",
-                    secondary_text=f"Descrição: {tarefa_descricao}"
-                )
-                tarefas_list.add_widget(tarefa_label)
+                    tarefa_label = TarefaListItem(
+                        text=f"Nome: {tarefa_nome}",
+                        secondary_text=f"Descrição: {tarefa_descricao}",
+                        tarefa_id=tarefa_id 
+                    )
+
+                    tarefas_list.add_widget(tarefa_label)
 
     def show_error_dialog(self):
         from kivymd.uix.dialog import MDDialog
@@ -284,6 +409,10 @@ class Example(MDApp):
             ]
         )
         dialog.open()
+
+
+
+
 
 
 Example().run()
