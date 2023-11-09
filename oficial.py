@@ -8,16 +8,10 @@ from kivymd.uix.button import MDRaisedButton
 from kivy.factory import Factory
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDRaisedButton
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.image import Image
-from kivy.properties import BooleanProperty
 from kivymd.uix.list import TwoLineAvatarIconListItem
 from kivy.uix.checkbox import CheckBox
-from kivymd.uix.button import MDIconButton
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.textfield import MDTextField
-
+from kivymd.uix.boxlayout import MDBoxLayout
 
 
 
@@ -65,7 +59,7 @@ KV = '''
             icon: "pencil"
             theme_text_color: "Custom"
             text_color: 0, 0, 0, 1
-            on_release: 
+            on_release: root.edit_task()
             
 
 <ContentNavigationDrawer>:
@@ -73,10 +67,10 @@ KV = '''
     MDList:
 
         OneLineListItem:
-            text: "Sair"
+            text: "Concluidas"
             on_press:
                 root.nav_drawer.set_state("close")
-                root.screen_manager.current = "scr 1"
+                root.screen_manager.current = "scr 5"
 
         OneLineListItem:
             text: "Tarefas"
@@ -87,7 +81,7 @@ KV = '''
 
 
         OneLineListItem:
-            text: "Lista de tarefas"
+            text: "Adicionar Tarefas"
             on_press:
 
                 root.nav_drawer.set_state("close")
@@ -112,7 +106,6 @@ MDScreen:
                     elevation: 0
                     pos_hint: {"top": 1}
                     left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
-                    
                     
 
                 MDCard:
@@ -178,6 +171,27 @@ MDScreen:
                     ScrollView:
                         MDList:
                             id: tarefas_list
+                            
+                            
+                           # ------------------------------------------------HISTORICOS------------------------------------------------------------------------
+                           
+            MDScreen:
+                name: "scr 5"
+
+                GridLayout:
+                    cols: 1
+
+                    MDTopAppBar:
+                        title: "Concluidas"
+                        elevation: 10
+                        pos_hint: {"top": 1}
+                        left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
+                        
+
+                    ScrollView:
+                        MDList:
+                            id: historico
+                           
                     
                            # -------------------------------------------CADASTRANDO USUÁRIOOOOOO -----------------------------
             MDScreen:
@@ -320,25 +334,64 @@ class ContentNavigationDrawer(MDScrollView):
     
 
 
+class EditTaskDialogContent(MDBoxLayout):
+    def __init__(self, tarefa_nome, tarefa_descricao, **kwargs):
+        super(EditTaskDialogContent, self).__init__(**kwargs)
+        self.orientation = "vertical"
+        self.size_hint_y = None
+        self.height = "100dp"
+        self.spacing = "10dp" 
+
+        self.nome_input = MDTextField(
+            hint_text="Nome da tarefa",
+            text=tarefa_nome,
+            
+        )
+
+        self.descricao_input = MDTextField(
+            hint_text="Descrição da tarefa",
+            text=tarefa_descricao
+            
+        )
+
+        self.add_widget(self.nome_input)
+        self.add_widget(self.descricao_input)
+
+    def get_edited_task_details(self):
+        return {
+            'nome': self.nome_input.text,
+            'descricao': self.descricao_input.text
+        }
+        
+          
+
 class TarefaListItem(TwoLineAvatarIconListItem):
     checkbox = ObjectProperty()
-    tarefa_id = ObjectProperty()  # Adicione um atributo para armazenar o ID da tarefa
+    tarefa_id = ObjectProperty()  
 
     def __init__(self, text, secondary_text, tarefa_id, checkbox_active=False, **kwargs):
         super(TarefaListItem, self).__init__(text=text, secondary_text=secondary_text, **kwargs)
-        self.tarefa_id = tarefa_id  # Atribua o ID da tarefa ao atributo
+        self.tarefa_id = tarefa_id 
 
 
     def add_checkbox(self):
-        # Verifique se a checkbox já foi adicionada
         if not self.checkbox:
-            self.checkbox = CheckBox(active=False)  # Defina o estado inicial da checkbox
+            self.checkbox = CheckBox(active=False)  
             self.add_widget(self.checkbox)
 
 
     def delete_task(self):
         app = MDApp.get_running_app()
-        app.show_delete_confirmation_dialog(self.tarefa_id)
+        app.confirmar_excluir(self.tarefa_id)
+        
+    def edit_task(self):
+        # Add functionality to edit the task here
+        app = MDApp.get_running_app()
+        app.edit_task(self.tarefa_id, self.text, self.secondary_text)
+        
+    def edit_task(self):
+            app = MDApp.get_running_app()
+            app.show_edit_task_popup(self.tarefa_id, self.text, self.secondary_text)
         
 
 
@@ -359,13 +412,6 @@ class Example(MDApp):
         self.show_success_dialog()
         self.limpar_campos_tarefa()
         
-        
-        
-    def limpar_campos_tarefa(self):
-        self.root.ids.nome.text = ""
-        self.root.ids.descricao.text = ""
-        self.root.ids.status.text = ""
-        self.root.ids.data.text = ""
 
     def delete_task(self, tarefa_id):
         try:
@@ -374,29 +420,6 @@ class Example(MDApp):
         except Exception as e:
             print(f"Erro ao excluir tarefa no banco de dados: {str(e)}")
             
-    def show_delete_confirmation_dialog(self, tarefa_id):
-        def delete_instance(instance):
-            try:
-                self.delete_task(tarefa_id)  # Exclui a tarefa do banco de dados
-                dialog.dismiss()
-            except Exception as e:
-                print(f"Erro ao excluir tarefa: {str(e)}")
-
-        dialog = MDDialog(
-            title="Confirmação",
-            text="Tem certeza que deseja excluir?",
-            buttons=[
-                MDRaisedButton(
-                    text="Sim",
-                    on_release=delete_instance
-                ),
-                MDRaisedButton(
-                    text="Não",
-                    on_release=lambda *args: dialog.dismiss()
-                ),
-            ]
-        )
-        dialog.open()
 
     
 
@@ -429,10 +452,12 @@ class Example(MDApp):
             }
             db.child("usuarios").child(new_user['localId']).set(user_data)
 
-            self.root.ids.screen_manager.current = "scr 1"  
+            self.show_success_account()  # Mostra o diálogo de sucesso
+            self.root.ids.screen_manager.current = "scr 1"
         except Exception as e:
             print(f"Erro ao criar usuário: {str(e)}")
-            self.show_error_dialog()
+            self.limpar_cadastro_user()
+
             
 
     def nao_tem_conta_cadastre(self):
@@ -458,10 +483,77 @@ class Example(MDApp):
                     )
 
                     tarefas_list.add_widget(tarefa_label)
+                    
+    def edit_task(self, tarefa_id, tarefa_nome, tarefa_descricao):
+        # Implemente a funcionalidade de edição aqui
+        # Você pode querer criar um diálogo ou uma tela para editar os detalhes da tarefa
+        print(f"Editando tarefa com ID: {tarefa_id}")
+        print(f"Nome atual: {tarefa_nome}")
+        print(f"Descrição atual: {tarefa_descricao}")
+        
+        
+    def show_edit_task_popup(self, tarefa_id, tarefa_nome, tarefa_descricao):
+        dialog_content = EditTaskDialogContent(tarefa_nome, tarefa_descricao)
+        largura = "400dp"
+        altura = "500dp"
+        dialog = MDDialog(
+            title="",
+            type="custom",
+            content_cls=dialog_content,
+            buttons=[
+                MDRaisedButton(
+                    text="Salvar",
+                    on_release=lambda *args: (self.save_edited_task(tarefa_id, dialog_content.get_edited_task_details()), dialog.dismiss())
+                ),
+                MDRaisedButton(
+                    text="Cancelar",
+                    on_release=lambda *args: dialog.dismiss()
+                )
+            ],
+            size_hint=(None, None),  # Desativa o redimensionamento automático
+            size=(largura, altura)
+        )
+        dialog.open()
+
+    
+  
+        
+    def save_edited_task(self, tarefa_id, edited_task_details):
+            print(f"Salvando detalhes editados para a tarefa ID: {tarefa_id}")
+            print("Novo Nome:", edited_task_details['nome'])
+            print("Nova Descrição:", edited_task_details['descricao'])
+
+            # Verifica se a descrição está vazia
+            if not edited_task_details['descricao']:
+                edited_task_details['descricao'] = "Descrição Vazia"  # ou adicione qualquer outro texto padrão
+
+            # Atualiza os detalhes da tarefa no Firebase
+            try:
+                db.child("tarefas").child(tarefa_id).update(edited_task_details)
+                print(f"Tarefa com ID {tarefa_id} atualizada com sucesso.")
+            except Exception as e:
+                print(f"Erro ao atualizar tarefa no banco de dados: {str(e)}")
+
+# ----------------------------------------------------------------------LIMPAR DADOS---------------------------------------------------------
+    def limpar_cadastro_user(self, dialog):
+        dialog.dismiss()
+        # Limpa os campos após os dados serem salvos
+        self.root.ids.email_user.text = ""
+        self.root.ids.tel_user.text = ""
+        self.root.ids.cpf_user.text = ""
+        self.root.ids.password_user.text = ""
+        
+        
+    def limpar_campos_tarefa(self):
+        self.root.ids.nome.text = ""
+        self.root.ids.descricao.text = ""
+        self.root.ids.status.text = ""
+        self.root.ids.data.text = ""
+
+#  ----------------------------------------------------------------------- POP UPS -----------------------------------------------------------
+
 
     def show_error_dialog(self):
-        from kivymd.uix.dialog import MDDialog
-        from kivymd.uix.button import MDRaisedButton
         dialog = MDDialog(
             title="Erro de Login",
             text="Usuário ou senha incorretos.",
@@ -475,8 +567,6 @@ class Example(MDApp):
         dialog.open()
         
     def show_success_dialog(self):
-        from kivymd.uix.dialog import MDDialog
-        from kivymd.uix.button import MDRaisedButton
 
         dialog = MDDialog(
             title="Tarefa Cadastrada",
@@ -489,7 +579,44 @@ class Example(MDApp):
             ]
         )
         dialog.open()
+        
+    def show_success_account(self):
 
+        dialog = MDDialog(
+            title="Conta Criada",
+            text="Conta criada com sucesso.",
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    on_release=lambda x: self.limpar_cadastro_user(dialog)
+                )
+            ]
+        )
+        dialog.open()
+
+    def confirmar_excluir(self, tarefa_id):
+            def delete_instance(instance):
+                try:
+                    self.delete_task(tarefa_id)  # Exclui a tarefa do banco de dados
+                    dialog.dismiss()
+                except Exception as e:
+                    print(f"Erro ao excluir tarefa: {str(e)}")
+
+            dialog = MDDialog(
+                title="Confirmação",
+                text="Tem certeza que deseja excluir?",
+                buttons=[
+                    MDRaisedButton(
+                        text="Sim",
+                        on_release=delete_instance
+                    ),
+                    MDRaisedButton(
+                        text="Não",
+                        on_release=lambda *args: dialog.dismiss()
+                    ),
+                ]
+            )
+            dialog.open()
 
 
 
