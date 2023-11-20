@@ -469,6 +469,7 @@ class Example(MDApp):
         self.theme_cls.primary_palette = "Blue"
         self.theme_cls.theme_style = "Light"
         return Builder.load_string(KV)
+        self.dialog = None
     
     
     def show_status_menu(self, instance_textfield):
@@ -539,6 +540,12 @@ class Example(MDApp):
         email = self.root.ids.email_user.text
         senha = self.root.ids.password_user.text
 
+        # Verificação de senha forte
+        is_strong_password, message = self.senha_forte(senha)
+        if not is_strong_password:
+            self.show_password_error_dialog(message)
+            return
+
         autenticacao = firebase.auth()
         try:
             new_user = autenticacao.create_user_with_email_and_password(email, senha)
@@ -556,6 +563,21 @@ class Example(MDApp):
         except Exception as e:
             print(f"Erro ao criar usuário: {str(e)}")
             self.limpar_cadastro_user()
+
+
+    def show_password_error_dialog(self, message):
+        dialog = MDDialog(
+            title="Erro na Senha",
+            text=message,
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    on_release=lambda x: dialog.dismiss()
+                )
+            ]
+        )
+        dialog.open()
+
 
             
 

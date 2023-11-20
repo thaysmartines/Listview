@@ -65,28 +65,34 @@ KV = '''
 
 <ContentNavigationDrawer>:
 
-    MDList:
 
-        OneLineListItem:
+
+    MDList:
+        OneLineAvatarListItem:
             text: "Concluidas"
             on_press:
                 root.nav_drawer.set_state("close")
                 root.screen_manager.current = "scr 5"
+            IconLeftWidget:
+                icon: "check-circle-outline"
 
-        OneLineListItem:
+        OneLineAvatarListItem:
             text: "Tarefas"
             on_press:
                 app.listar_tarefas()
                 root.nav_drawer.set_state("close")
                 root.screen_manager.current = "scr 2"
+            IconLeftWidget:
+                icon: "format-list-checkbox"
 
-
-        OneLineListItem:
+        OneLineAvatarListItem:
             text: "Adicionar Tarefas"
             on_press:
-
                 root.nav_drawer.set_state("close")
                 root.screen_manager.current = "scr 3"
+            IconLeftWidget:
+                icon: "plus-circle-outline"
+
 
 
 
@@ -260,52 +266,77 @@ MDScreen:
             MDScreen:
                 name: "scr 4"
                 
+                
+                FloatLayout: 
 
-                MDCard:
-                    size_hint: None, None
-                    size: "300dp", "350dp"
-                    pos_hint: {"center_x": 0.5, "center_y": 0.5}
-
-                    BoxLayout:
-                        orientation: 'vertical'
-                        padding: '10dp'
-
-                        MDLabel:
-                            text: "Cadastre-se"
-                            halign: "center"
-                            pos_hint: {"center_x": .5, "center_y": .5}
-                            size_hint_x: .5
-                            
-
-                        MDTextField:
-                            id: email_user
-                            hint_text: "e-mail"
-                            multiline: True
-
-                        MDTextField:
-                            id: tel_user
-                            hint_text: "Telefone"
-                            multiline: True
-
-                        MDTextField:
-                            id: cpf_user
-                            hint_text: "CPF"
-                            multiline: True
-
-                        MDTextField:
-                            id: password_user
-                            hint_text: "Digite a senha"
-                            password: True
-                            multiline: True
-
-                        MDRaisedButton:
-                            text: "Criar conta"
-                            on_release: app.cadastrar_user()
-                            pos_hint: {"center_x": .5, "center_y": .8}
-                            size_hint_x: .5
-
+                        
+                         
+                    MDLabel:
+                        text: "Cadastre-se!"
+                        font_style:'H5'
+                        bold: True
+                        halign: 'center'
+                        pos_hint: {"center_x": 0.5, "center_y": 0.8 }
+                    
+                        
+                    MDTextField:
+                        id: email_user
+                        hint_text:"Email"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.7 }
+                        size_hint_x: .8
+                        icon_right: 'email'
+                        
+                    MDTextField:
+                        id: tel_user
+                        hint_text:"Telefone"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.6 }
+                        size_hint_x: .8
+                        icon_right: 'phone-settings'
+                        
+                    MDTextField:
+                        id: cpf_user
+                        hint_text:"CPF"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5 }
+                        size_hint_x: .8
+                        icon_right: 'id-card'
+                        
+                    MDTextField:
+                        id: password_user
+                        hint_text:"Crie uma senha"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.4 }
+                        size_hint_x: .8
+                        icon_right: 'lock'
+                        password: True
+                        
+                    MDLabel:
+                        text: "A senha deve ter pelo menos 8 caracteres."
+                        font_style:'Caption'
+                        halign: 'left'
+                        pos_hint: {"center_x": 0.6, "center_y": 0.35 }
+                        
+                    MDLabel:
+                        text: "A senha deve conter letras e números."
+                        font_style:'Caption'
+                        halign: 'left'
+                        pos_hint: {"center_x": 0.6, "center_y": 0.32 }
+                        
+                    MDLabel:
+                        text: "A senha deve conter caracteres especiais."
+                        font_style:'Caption'
+                        halign: 'left'
+                        pos_hint: {"center_x": 0.6, "center_y": 0.29 }
+                        
+                        
+                        
+                    MDFillRoundFlatButton: 
+                        text: 'Criar conta'
+                        on_release: app.cadastrar_user()
+                        elevation: 1
+                        text_color: 1,1,1,1
+                        pos_hint: {"center_x": 0.5, "center_y": 0.2 }
+                        size_hint_x: .8
+                        
                 MDTopAppBar:
-                    title: "Casdastrar"
                     elevation: 0
                     pos_hint: {"top": 1}
                     left_action_items: [["arrow-left", lambda x: app.voltar_login()]]
@@ -373,18 +404,9 @@ MDScreen:
                     text_color: "white"
                     line_color: "white"
                     md_bg_color: "#428F58"
-                    pos_hint: {"center_x": .7, "center_y": .1}
+                    pos_hint: {"center_x": .5, "center_y": .1}
                     size_hint_x: .2
 
-                MDRoundFlatIconButton:
-                    text: "Voltar"
-                    icon: "arrow-left"
-                    icon_color: "white"
-                    text_color: "white"
-                    line_color: "white"
-                    md_bg_color: "#2496F2"
-                    pos_hint: {"center_x": .3, "center_y": .1}
-                    size_hint_x: .2
 
         MDNavigationDrawer:
             id: nav_drawer
@@ -586,6 +608,7 @@ class Example(MDApp):
         try:
             new_user = autenticacao.create_user_with_email_and_password(email, senha)
             print("Usuário criado com sucesso!")
+            
 
             # ARMAZENA INFORMAÇÕES A MAIS CRIANDO UM JSON
             user_data = {
