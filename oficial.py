@@ -38,6 +38,7 @@ KV = '''
 
     CheckboxLeftWidget:
         id: checkbox
+        on_active: root.on_checkbox_active(self.active)
 
     BoxLayout:
         orientation: "horizontal"
@@ -428,6 +429,7 @@ class ContentNavigationDrawer(MDScrollView):
         self.screen_manager.current = "scr 0"
     
 
+
 class EditTaskDialogContent(MDBoxLayout):
     def __init__(self, tarefa_nome, tarefa_descricao, **kwargs):
         super(EditTaskDialogContent, self).__init__(**kwargs)
@@ -457,34 +459,61 @@ class EditTaskDialogContent(MDBoxLayout):
             'descricao': self.descricao_input.text
         }
         
-          
+
+
+
+
 
 class TarefaListItem(TwoLineAvatarIconListItem):
     checkbox = ObjectProperty()
-    tarefa_id = ObjectProperty()  
+    tarefa_id = ObjectProperty()
+    original_secondary_text = ""
+    original_text = ""
 
     def __init__(self, text, secondary_text, tarefa_id, checkbox_active=False, **kwargs):
         super(TarefaListItem, self).__init__(text=text, secondary_text=secondary_text, **kwargs)
-        self.tarefa_id = tarefa_id 
+        self.tarefa_id = tarefa_id
+        self.original_secondary_text = secondary_text 
+        self.original_text = text  
+        self.add_checkbox(checkbox_active)
 
-
-    def add_checkbox(self):
-        if not self.checkbox:
-            self.checkbox = CheckBox(active=False)  
+    def add_checkbox(self, checkbox_active):
+        if not self.checkbox:  # Verifica se o checkbox já está presente
+            self.checkbox = CheckBox(active=checkbox_active)
+            self.checkbox.bind(active=lambda instance, value: self.on_checkbox_active(value))
             self.add_widget(self.checkbox)
 
+    def on_checkbox_active(self, active):
+        if active:
+            # RISCA
+            self.secondary_text = "[s]" + self.original_secondary_text + "[/s]" # TÍTULO
+            self.text = "[s]" + self.original_text + "[/s]" # SUBTÍTULO
+        else:
+            # TIRA O RISCO
+            self.secondary_text = self.original_secondary_text # TÍTULO
+            self.text = self.original_text # SUBTÍTULO 
+
+
+
+            
 
     def delete_task(self):
         app = MDApp.get_running_app()
         app.confirmar_excluir(self.tarefa_id)
         
-  
         
     def edit_task(self):
             app = MDApp.get_running_app()
             app.show_edit_task_popup(self.tarefa_id, self.text, self.secondary_text)
-        
 
+
+
+
+
+
+
+
+        
 
 
 class Example(MDApp):
