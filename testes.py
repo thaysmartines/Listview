@@ -14,6 +14,8 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.utils import get_color_from_hex
+from kivymd.uix.button import MDFlatButton
+
 
 
 
@@ -30,394 +32,6 @@ config = {
 
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
-
-KV = '''
-<TarefaListItem@TwoLineAvatarIconListItem>:
-    text: root.text
-    secondary_text: root.secondary_text
-
-    CheckboxLeftWidget:
-        id: checkbox
-
-    BoxLayout:
-        orientation: "horizontal"
-        size_hint_x: None
-        size_hint_y: None
-        size: self.minimum_size
-        padding: "5dp"
-        spacing: "10dp"
-        pos_hint: {"right": 1, "top": 1}
-
-        IconRightWidget:
-            id: delete_icon
-            icon: 'trash-can-outline'
-            theme_text_color: "Custom"
-            text_color: 1, 0.043, 0 
-            on_release: root.delete_task()
-
-        IconRightWidget:
-            id: edit_icon
-            icon: "pencil"
-            theme_text_color: "Custom"
-            text_color: 0, 0, 0, 1
-            on_release: root.edit_task()
-            
-
-<ContentNavigationDrawer>:
-
-
-
-    MDList:
-        OneLineAvatarListItem:
-            text: "Concluidas"
-            on_press:
-                root.nav_drawer.set_state("close")
-                root.screen_manager.current = "scr 5"
-            IconLeftWidget:
-                icon: "check-circle-outline"
-
-        OneLineAvatarListItem:
-            text: "Tarefas"
-            on_press:
-                app.listar_tarefas()
-                root.nav_drawer.set_state("close")
-                root.screen_manager.current = "scr 2"
-            IconLeftWidget:
-                icon: "format-list-checkbox"
-
-        OneLineAvatarListItem:
-            text: "Adicionar Tarefas"
-            on_press:
-                root.nav_drawer.set_state("close")
-                root.screen_manager.current = "scr 3"
-            IconLeftWidget:
-                icon: "plus-circle-outline"
-
-
-
-
-MDScreen:
-
-
-
-    MDNavigationLayout:
-
-        MDScreenManager:
-            id: screen_manager
-            
-#  --------------------------------------------Tela inicial -----------------------------------------------------------------------------
-            MDScreen:
-                name: "scr 0"
-                
-                
-                FloatLayout: 
-                        
-
-                    Image:
-                        source: "images/logo_listview.png"
-                        size_hint:(0.8, 0.8)
-                        pos_hint: {"center_x": 0.5, "center_y": 0.7 }
-                        
-                    MDLabel:
-                        text: "Seja bem vindo!"
-                        font_style:'H5'
-                        bold: True
-                        halign: 'center'
-                        pos_hint: {"center_x": 0.5, "center_y": 0.4 }
-                        
-                        
-                        
-                        
-                    MDFillRoundFlatButton:
-                        text: 'Começar'
-                        elevation: 1
-                        text_color: 1, 1, 1, 1
-                        pos_hint: {"center_x": 0.5, "center_y": 0.2}
-                        size_hint_x: .8
-                        on_release: app.comecar()
-                        
-                    MDRectangleFlatIconButton:
-                        text: "Não tem conta? Cadastre-se"
-                        icon: "account-plus"
-                        line_color: 0, 0, 0, 0
-                        pos_hint: {"center_x": .5, "center_y": .1}
-                        padding: '10dp'
-                        on_release: app.nao_tem_conta_cadastre()
-
-
-
-# ------------------------------------------------------------ tela de login -------------------------------------------------------------
-
-            MDScreen:
-                name: "scr 1"
-                
-                
-                FloatLayout: 
-                
-                    MDTopAppBar:
-                        md_bg_color: 1,1,1,0
-                        elevation: 0
-                        pos_hint: {"top": 1}
-                        left_action_items: [["arrow-left", lambda x: app.callback()]]
-
-                        
-                    
-                    Image:
-                        source: "images/user.png"
-                        size_hint:(0.5, 0.5)
-                        pos_hint: {"center_x": 0.5, "center_y": 0.7 }
-                        
-                    MDLabel:
-                        text: "Seja bem vindo!"
-                        font_style:'H5'
-                        bold: True
-                        halign: 'center'
-                        pos_hint: {"center_x": 0.5, "center_y": 0.6 }
-                        
-                    MDLabel:
-                        text: "Faça o login para continuar"
-                        font_style:'Caption'
-                        halign: 'center'
-                        pos_hint: {"center_x": 0.5, "center_y": 0.55 }
-                        
-                    MDTextField:
-                        id: username
-                        hint_text:"Email"
-                        pos_hint: {"center_x": 0.5, "center_y": 0.5 }
-                        size_hint_x: .8
-                        icon_right: 'email'
-                        
-                    MDTextField:
-                        id: password
-                        hint_text:"Senha"
-                        pos_hint: {"center_x": 0.5, "center_y": 0.4 }
-                        size_hint_x: .8
-                        icon_right: 'lock'
-                        password: True
-                        multiline: True
-                        
-                    MDRectangleFlatIconButton:
-                        text: "Esqueci minha senha"
-                        line_color: 0, 0, 0, 0
-                        pos_hint: {"center_x": .5, "center_y": .3}
-                        padding: '10dp'
-                        
-                        
-                        
-                    MDFillRoundFlatButton: 
-                        text: 'Entrar'
-                        on_release: app.login()
-                        elevation: 1
-                        text_color: 1,1,1,1
-                        pos_hint: {"center_x": 0.5, "center_y": 0.2 }
-                        size_hint_x: .8
-                        
-                        
-                    MDRectangleFlatIconButton:
-                        text: "Não tem conta? Cadastre-se"
-                        icon: "account-plus"
-                        line_color: 0, 0, 0, 0
-                        pos_hint: {"center_x": .5, "center_y": .1}
-                        padding: '10dp'
-                        on_release: app.nao_tem_conta_cadastre()
-
-
-                                                        
-                            # ---------------------------------------------------------LISTANDO TAREFAS ---------------------------------------------------
-            MDScreen:
-                name: "scr 2"
-
-                GridLayout:
-                    cols: 1
-
-                    MDTopAppBar:
-                        title: "Tarefas"
-                        elevation: 10
-                        pos_hint: {"top": 1}
-                        left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
-                        
-
-                    ScrollView:
-                        MDList:
-                            id: tarefas_list
-                            
-                            
-                           # ------------------------------------------------tarefas concluidas------------------------------------------------------------------------
-                           
-            MDScreen:
-                name: "scr 5"
-
-                GridLayout:
-                    cols: 1
-
-                    MDTopAppBar:
-                        title: "Concluidas"
-                        elevation: 10
-                        pos_hint: {"top": 1}
-                        left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
-                        
-
-                    ScrollView:
-                        MDList:
-                            id: historico
-                           
-                    
-                           # -------------------------------------------CADASTRANDO USUÁRIOOOOOO -----------------------------
-            MDScreen:
-                name: "scr 4"
-                
-                
-                FloatLayout: 
-
-                        
-                         
-                    MDLabel:
-                        text: "Cadastre-se!"
-                        font_style:'H5'
-                        bold: True
-                        halign: 'center'
-                        pos_hint: {"center_x": 0.5, "center_y": 0.8 }
-                    
-                        
-                    MDTextField:
-                        id: email_user
-                        hint_text:"Email"
-                        pos_hint: {"center_x": 0.5, "center_y": 0.7 }
-                        size_hint_x: .8
-                        icon_right: 'email'
-                        
-                    MDTextField:
-                        id: tel_user
-                        hint_text:"Telefone"
-                        pos_hint: {"center_x": 0.5, "center_y": 0.6 }
-                        size_hint_x: .8
-                        icon_right: 'phone-settings'
-                        
-                    MDTextField:
-                        id: cpf_user
-                        hint_text:"CPF"
-                        pos_hint: {"center_x": 0.5, "center_y": 0.5 }
-                        size_hint_x: .8
-                        icon_right: 'id-card'
-                        
-                    MDTextField:
-                        id: password_user
-                        hint_text:"Crie uma senha"
-                        pos_hint: {"center_x": 0.5, "center_y": 0.4 }
-                        size_hint_x: .8
-                        icon_right: 'lock'
-                        password: True
-                        
-                    MDLabel:
-                        text: "A senha deve ter pelo menos 8 caracteres."
-                        font_style:'Caption'
-                        halign: 'left'
-                        pos_hint: {"center_x": 0.6, "center_y": 0.35 }
-                        
-                    MDLabel:
-                        text: "A senha deve conter letras e números."
-                        font_style:'Caption'
-                        halign: 'left'
-                        pos_hint: {"center_x": 0.6, "center_y": 0.32 }
-                        
-                    MDLabel:
-                        text: "A senha deve conter caracteres especiais."
-                        font_style:'Caption'
-                        halign: 'left'
-                        pos_hint: {"center_x": 0.6, "center_y": 0.29 }
-                        
-                        
-                        
-                    MDFillRoundFlatButton: 
-                        text: 'Criar conta'
-                        on_release: app.cadastrar_user()
-                        elevation: 1
-                        text_color: 1,1,1,1
-                        pos_hint: {"center_x": 0.5, "center_y": 0.2 }
-                        size_hint_x: .8
-                        
-                MDTopAppBar:
-                    elevation: 0
-                    pos_hint: {"top": 1}
-                    left_action_items: [["arrow-left", lambda x: app.voltar_login()]]
-
-#  --------------------------------------------------------------CADASTRANDO TAREFAS -------------------------------------------------
-            MDScreen:
-                name: "scr 3"
-                
-                MDTopAppBar:
-                    elevation: 0
-                    pos_hint: {"top": 1}
-                    left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
-
-                MDLabel:
-                    text: "Cadastrar Tarefas"
-                    font_style:'H5'
-                    bold: True
-                    halign: "center"
-                    pos_hint: {"center_x": .5, "center_y": .8}
-                    size_hint_x: .5
-
-                MDTextField:
-                    id: nome
-                    hint_text: "Titulo"
-                    helper_text_mode: "on_error"
-                    pos_hint: {"center_x": .5, "center_y": .6}
-                    size_hint_x: .5
-                    icon_right: 'format-title'
-
-                MDTextField:
-                    id: descricao
-                    hint_text: "Descrição"
-                    helper_text_mode: "on_error"
-                    pos_hint: {"center_x": .5, "center_y": .5}
-                    size_hint_x: .5
-                    icon_right: 'comment-alert-outline'
-
-                MDBoxLayout:
-                    adaptive_height: True
-                    md_bg_color: app.theme_cls.primary_color
-
-                MDTextField:
-                    id: status
-                    hint_text: "Status da tarefa"
-                    helper_text_mode: "on_error"
-                    pos_hint: {"center_x": .5, "center_y": .4}
-                    size_hint_x: .5
-                    icon_right: 'check-circle'
-                    on_focus: app.show_status_menu(self) if self.focus else None
-
-                MDTextField:
-                    id: data
-                    hint_text: "Data de conclusão"
-                    helper_text_mode: "on_error"
-                    pos_hint: {"center_x": .5, "center_y": .3}
-                    size_hint_x: .5
-                    icon_right: 'calendar-today'
-
-                MDRoundFlatIconButton:
-                    id: cadastro_tarefa
-                    on_press: app.cadastrar(nome.text, descricao.text, status.text, data.text)
-                    text: "Cadastrar"
-                    icon: "content-save-check"
-                    icon_color: "white"
-                    text_color: "white"
-                    line_color: "white"
-                    md_bg_color: "#428F58"
-                    pos_hint: {"center_x": .5, "center_y": .1}
-                    size_hint_x: .2
-
-
-        MDNavigationDrawer:
-            id: nav_drawer
-            radius: (0, 16, 16, 0)
-
-            ContentNavigationDrawer:
-                screen_manager: screen_manager
-                nav_drawer: nav_drawer
-
-
-'''
 
 
 class ContentNavigationDrawer(MDScrollView):
@@ -478,10 +92,7 @@ class TarefaListItem(TwoLineAvatarIconListItem):
         app = MDApp.get_running_app()
         app.confirmar_excluir(self.tarefa_id)
         
-    def edit_task(self):
-        # Add functionality to edit the task here
-        app = MDApp.get_running_app()
-        app.edit_task(self.tarefa_id, self.text, self.secondary_text)
+  
         
     def edit_task(self):
             app = MDApp.get_running_app()
@@ -495,7 +106,8 @@ class Example(MDApp):
     def build(self):
         self.theme_cls.primary_palette = "Blue"
         self.theme_cls.theme_style = "Light"
-        return Builder.load_string(KV)
+        
+        return Builder.load_file("views/main.kv")
     
     def callback(self):
         self.root.ids.screen_manager.current = "scr 0"
@@ -553,6 +165,7 @@ class Example(MDApp):
     def delete_task(self, tarefa_id):
         try:
             db.child("tarefas").child(tarefa_id).remove()
+            self.listar_tarefas()
             print(f"Tarefa com ID {tarefa_id} excluída com sucesso no banco de dados.")
         except Exception as e:
             print(f"Erro ao excluir tarefa no banco de dados: {str(e)}")
@@ -622,22 +235,17 @@ class Example(MDApp):
         except Exception as e:
             print(f"Erro ao criar usuário: {str(e)}")
             self.limpar_cadastro_user()
+        
 
+    def esqueci_senha(self, email):
+        autenticacao = firebase.auth()
+        try:
+            autenticacao.send_password_reset_email(email)
+            print("Email de redefinição de senha enviado com sucesso!")
+            # Adicione aqui o código para exibir uma mensagem de sucesso
+        except Exception as e:
+            print(f"Erro ao enviar email de redefinição de senha: {str(e)}")
 
-    def show_password_error_dialog(self, message):
-        dialog = MDDialog(
-            title="Erro na Senha",
-            text=message,
-            buttons=[
-                MDRaisedButton(
-                    text="OK",
-                    on_release=lambda x: dialog.dismiss()
-                )
-            ]
-        )
-        dialog.open()
-
-            
 
     def nao_tem_conta_cadastre(self):
         self.root.ids.screen_manager.current = "scr 4"
@@ -645,7 +253,9 @@ class Example(MDApp):
     def comecar(self):
         self.root.ids.screen_manager.current = "scr 1"
 
-
+    def abrir_edicao_senha(self):
+            self.root.ids.screen_manager.current = "scr 6"
+            
     def listar_tarefas(self):
             tarefas_list = self.root.ids.tarefas_list
             tarefas_list.clear_widgets()
@@ -667,8 +277,6 @@ class Example(MDApp):
                     tarefas_list.add_widget(tarefa_label)
                     
     def edit_task(self, tarefa_id, tarefa_nome, tarefa_descricao):
-        # Implemente a funcionalidade de edição aqui
-        # Você pode querer criar um diálogo ou uma tela para editar os detalhes da tarefa
         print(f"Editando tarefa com ID: {tarefa_id}")
         print(f"Nome atual: {tarefa_nome}")
         print(f"Descrição atual: {tarefa_descricao}")
@@ -712,6 +320,7 @@ class Example(MDApp):
             # Atualiza os detalhes da tarefa no Firebase
             try:
                 db.child("tarefas").child(tarefa_id).update(edited_task_details)
+                self.listar_tarefas()
                 print(f"Tarefa com ID {tarefa_id} atualizada com sucesso.")
             except Exception as e:
                 print(f"Erro ao atualizar tarefa no banco de dados: {str(e)}")
@@ -774,6 +383,7 @@ class Example(MDApp):
                 )
             ]
         )
+
         dialog.open()
 
     def confirmar_excluir(self, tarefa_id):
@@ -799,6 +409,33 @@ class Example(MDApp):
                 ]
             )
             dialog.open()
+            
+    def show_reset_success_dialog(self):
+        dialog = MDDialog(
+            title="Email Enviado",
+            text="Um email de redefinição de senha foi enviado.",
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    on_release=lambda x: dialog.dismiss()
+                )
+            ]
+        )
+        dialog.open()
+
+    def show_reset_error_dialog(self):
+        dialog = MDDialog(
+            title="Erro",
+            text="Erro ao enviar o email de redefinição de senha.",
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    on_release=lambda x: dialog.dismiss()
+                )
+            ]
+        )
+        dialog.open()
+
 
 
 
@@ -808,3 +445,4 @@ class Example(MDApp):
 
 
 Example().run()
+
