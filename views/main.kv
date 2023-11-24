@@ -35,13 +35,15 @@
 
 
     MDList:
+
+
         OneLineAvatarListItem:
-            text: "Concluidas"
+            text: "Adicionar Tarefas"
             on_press:
                 root.nav_drawer.set_state("close")
-                root.screen_manager.current = "scr 5"
+                root.screen_manager.current = "scr 3"
             IconLeftWidget:
-                icon: "check-circle-outline"
+                icon: "plus-circle-outline"
 
         OneLineAvatarListItem:
             text: "Tarefas"
@@ -53,12 +55,12 @@
                 icon: "format-list-checkbox"
 
         OneLineAvatarListItem:
-            text: "Adicionar Tarefas"
+            text: "Sair"
             on_press:
                 root.nav_drawer.set_state("close")
-                root.screen_manager.current = "scr 3"
+                root.screen_manager.current = "scr 0"
             IconLeftWidget:
-                icon: "plus-circle-outline"
+                icon: "exit-to-app"
 
 
 
@@ -126,7 +128,7 @@ MDScreen:
                         md_bg_color: 1,1,1,0
                         elevation: 0
                         pos_hint: {"top": 1}
-                        left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
+                        left_action_items: [["arrow-left", lambda x: app.callback()]]
 
                         
                     

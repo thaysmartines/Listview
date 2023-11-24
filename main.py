@@ -41,7 +41,6 @@ class ContentNavigationDrawer(MDScrollView):
     def voltar_para_tela_inicial(self):
         self.screen_manager.current = "scr 0"
     
-
 class EditTaskDialogContent(MDBoxLayout):
     def __init__(self, tarefa_nome, tarefa_descricao, **kwargs):
         super(EditTaskDialogContent, self).__init__(**kwargs)
@@ -71,35 +70,58 @@ class EditTaskDialogContent(MDBoxLayout):
             'descricao': self.descricao_input.text
         }
         
-          
+
+
+
 
 class TarefaListItem(TwoLineAvatarIconListItem):
     checkbox = ObjectProperty()
-    tarefa_id = ObjectProperty()  
+    tarefa_id = ObjectProperty()
+    original_secondary_text = ""
+    original_text = ""
+    checkbox_active = False  # Adicionando uma variável para rastrear o estado do checkbox
 
     def __init__(self, text, secondary_text, tarefa_id, checkbox_active=False, **kwargs):
         super(TarefaListItem, self).__init__(text=text, secondary_text=secondary_text, **kwargs)
-        self.tarefa_id = tarefa_id 
+        self.tarefa_id = tarefa_id
+        self.original_secondary_text = secondary_text
+        self.original_text = text
+        self.checkbox_active = checkbox_active
 
+        self.add_checkbox(self.checkbox_active)  # Adiciona o checkbox com o estado inicial
 
-    def add_checkbox(self):
+    def add_checkbox(self, checkbox_active):
         if not self.checkbox:
-            self.checkbox = CheckBox(active=False)  
-            self.add_widget(self.checkbox)
+            self.checkbox = CheckBox(active=checkbox_active)
+            self.checkbox.bind(active=lambda instance, value: self.on_checkbox_active(value))
 
+    def on_checkbox_active(self, active):
+        print(active)
+        self.checkbox_active = active  # Atualiza o estado do checkbox
+
+        if active:
+            self.secondary_text = "[s]" + self.original_secondary_text + "[/s]"
+            self.text = "[s]" + self.original_text + "[/s]"
+        else:
+            self.secondary_text = self.original_secondary_text
+            self.text = self.original_text
+
+        dados = {
+            'nome': self.text,
+            'descricao': self.secondary_text,
+            'checkbox_active': self.checkbox_active  # Adiciona o estado do checkbox aos dados
+        }
+
+        db.child("tarefas").child(self.tarefa_id).update(dados)
 
     def delete_task(self):
         app = MDApp.get_running_app()
         app.confirmar_excluir(self.tarefa_id)
         
-  
         
     def edit_task(self):
             app = MDApp.get_running_app()
             app.show_edit_task_popup(self.tarefa_id, self.text, self.secondary_text)
-        
-
-
 
 class Example(MDApp):
         
@@ -156,7 +178,8 @@ class Example(MDApp):
             'nome':nome,
             'descricao':descricao,
             "status_tarefa":status_tarefa,
-            "data_tarefa":data_tarefa
+            "data_tarefa":data_tarefa,
+            "checkbox_active":False
         })
         self.show_success_dialog()
         self.limpar_campos_tarefa()
@@ -235,17 +258,22 @@ class Example(MDApp):
         except Exception as e:
             print(f"Erro ao criar usuário: {str(e)}")
             self.limpar_cadastro_user()
-        
 
-    def esqueci_senha(self, email):
-        autenticacao = firebase.auth()
-        try:
-            autenticacao.send_password_reset_email(email)
-            print("Email de redefinição de senha enviado com sucesso!")
-            # Adicione aqui o código para exibir uma mensagem de sucesso
-        except Exception as e:
-            print(f"Erro ao enviar email de redefinição de senha: {str(e)}")
 
+    def show_password_error_dialog(self, message):
+        dialog = MDDialog(
+            title="Erro na Senha",
+            text=message,
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    on_release=lambda x: dialog.dismiss()
+                )
+            ]
+        )
+        dialog.open()
+
+            
 
     def nao_tem_conta_cadastre(self):
         self.root.ids.screen_manager.current = "scr 4"
@@ -253,9 +281,7 @@ class Example(MDApp):
     def comecar(self):
         self.root.ids.screen_manager.current = "scr 1"
 
-    def abrir_edicao_senha(self):
-            self.root.ids.screen_manager.current = "scr 6"
-            
+
     def listar_tarefas(self):
             tarefas_list = self.root.ids.tarefas_list
             tarefas_list.clear_widgets()
@@ -265,13 +291,15 @@ class Example(MDApp):
                 for tarefa in tarefas.each():
                     tarefa_nome = tarefa.val()['nome']
                     tarefa_descricao = tarefa.val()['descricao']
+                    checkbox_active = tarefa.val()['checkbox_active']
 
                     tarefa_id = tarefa.key()  
 
                     tarefa_label = TarefaListItem(
                         text=f"{tarefa_nome}",
                         secondary_text=f"{tarefa_descricao}",
-                        tarefa_id=tarefa_id 
+                        tarefa_id=tarefa_id,
+                        checkbox_active=checkbox_active
                     )
 
                     tarefas_list.add_widget(tarefa_label)
@@ -309,10 +337,10 @@ class Example(MDApp):
   
         
     def save_edited_task(self, tarefa_id, edited_task_details):
-            print(f"Salvando detalhes editados para a tarefa ID: {tarefa_id}")
-            print("Novo Nome:", edited_task_details['nome'])
-            print("Nova Descrição:", edited_task_details['descricao'])
-
+            # print(f"Salvando detalhes editados para a tarefa ID: {tarefa_id}")
+            # print("Novo Nome:", edited_task_details['nome'])
+            # print("Nova Descrição:", edited_task_details['descricao'])
+            print(edited_task_details)
             # Verifica se a descrição está vazia
             if not edited_task_details['descricao']:
                 edited_task_details['descricao'] = "Descrição Vazia"  # ou adicione qualquer outro texto padrão
@@ -409,33 +437,6 @@ class Example(MDApp):
                 ]
             )
             dialog.open()
-            
-    def show_reset_success_dialog(self):
-        dialog = MDDialog(
-            title="Email Enviado",
-            text="Um email de redefinição de senha foi enviado.",
-            buttons=[
-                MDRaisedButton(
-                    text="OK",
-                    on_release=lambda x: dialog.dismiss()
-                )
-            ]
-        )
-        dialog.open()
-
-    def show_reset_error_dialog(self):
-        dialog = MDDialog(
-            title="Erro",
-            text="Erro ao enviar o email de redefinição de senha.",
-            buttons=[
-                MDRaisedButton(
-                    text="OK",
-                    on_release=lambda x: dialog.dismiss()
-                )
-            ]
-        )
-        dialog.open()
-
 
 
 
