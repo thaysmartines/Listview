@@ -1,6 +1,6 @@
 # Projeto To-Do List em PYTHON com o framework (Kivy e KivyMD) e Banco de Dados NOSql Firebase
 
-Este é um simples aplicativo To-Do List desenvolvido usando o framework Kivy sendo sua linguagem Python, criando funções, interface grafica e utilizando recursos do firebase. O aplicativo permite criar conta, fazer o login, adicionar, editar, marcar como concluído e excluir , tudo isso com armazenamento no Realtime Database e Authentico pelo Firebase.
+Este é um simples aplicativo To-Do List desenvolvido usando o framework Kivy sendo sua linguagem Python, criando funções, interface grafica e utilizando recursos do firebase. O aplicativo permite criar conta, fazer o login, adicionar, editar, marcar como concluído e excluir , tudo isso utilizando recursos do Firebase.
 
 ## Funcionalidades
 - Criar conta
